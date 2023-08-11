@@ -1,0 +1,36 @@
+require:
+  - rubocop-rails
+
+AllCops:
+  TargetRubyVersion: 2.7
+  NewCops: disable
+  Exclude:
+    - 'test/dummy/db/schema.rb'
+    - 'bundle/**/*'
+    - 'public/**/*'
+    -  Gemfile
+    - 'test/dummy/bin/**/*'
+    - 'test/dummy/config/**/*'
+    - 'easy_exports.gemspec'
+
+Metrics/BlockLength:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/StringLiterals:
+  Exclude:
+    - 'test/dummy/db/**/*'
+    - 'test/dummy/config/**/*'
+
+Lint/MissingSuper:
+  Enabled: false
+
+Metrics/MethodLength:
+  CountAsOne: ['array', 'hash']
+  Max: 15
+
+Metrics/AbcSize:
+  Max: 20
+
