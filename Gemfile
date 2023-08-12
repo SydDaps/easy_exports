@@ -14,3 +14,5 @@ gem "sqlite3"
 gem "rubocop", "~> 1.56"
 
 gem "rubocop-rails", "~> 2.20"
+
+gem "byebug", "~> 11.1"
