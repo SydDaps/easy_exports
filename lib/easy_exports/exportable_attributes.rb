@@ -12,7 +12,7 @@ module EasyExports
       def exportable_attributes
         self_with_associations.each_with_object({}) do |association, attributes|
           association_name = association.name.to_s.downcase
-          next if associations_to_exclude_store[underscored_self_name].include? association_name
+          next if associations_to_exclude_store[underscored_self_name]&.include? association_name
 
           association_attributes = resolve_attributes_for_association(association)
 
