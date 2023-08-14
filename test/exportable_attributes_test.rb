@@ -26,28 +26,27 @@ class ExportableAttributesTest < ActiveSupport::TestCase
   end
 
   test 'it should exclude attributes passed to exclude_exportable_attributes method from exportable_attributes' do
-    #method call in Email class exclude_exportable_attributes all: [:created_at], users: [:first_name]
+    # method call in Email class exclude_exportable_attributes all: [:created_at], users: [:first_name]
     email_exportable_attributes = Email.exportable_attributes
 
-    assert_not email_exportable_attributes["Email"].include? 'created at'
+    assert_not email_exportable_attributes['Email'].include? 'created at'
 
-    assert_not (email_exportable_attributes["Users"] & ['created at', 'first name']).any?
+    assert_not (email_exportable_attributes['Users'] & ['created at', 'first name']).any?
   end
 
   test 'it should exclude associations passed to exclude_exportable_associations from exportable_attributes' do
-    #method call in Phone class exportable_attributes [:users]
+    # method call in Phone class exportable_attributes [:users]
     phone_exportable_attributes = Phone.exportable_attributes
 
-    assert phone_exportable_attributes["User"].blank?
+    assert phone_exportable_attributes['User'].blank?
   end
 
   test 'it should rename exportable_attributes associations to passed association aliases' do
-    #method call in User class exportable_association_aliases emails: :user_emails_alias
+    # method call in User class exportable_association_aliases emails: :user_emails_alias
     address_exportable_attributes = Address.exportable_attributes
 
-    assert address_exportable_attributes["User alias"].present?
+    assert address_exportable_attributes['User alias'].present?
   end
-
 
   test 'it raise argument error for invalid association passed for association_aliases' do
     assert_raises ArgumentError do

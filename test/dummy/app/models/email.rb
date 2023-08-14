@@ -6,6 +6,4 @@ class Email < ApplicationRecord
   exclude_exportable_attributes all: [:created_at], users: [:first_name]
 
   # exportable_association_aliases user: :user_aliases
-
-
 end
