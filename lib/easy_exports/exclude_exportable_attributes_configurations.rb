@@ -41,7 +41,7 @@ module EasyExports
 
         argument.to_a.each do |arg|
           case arg
-          in [*, [*]] if arg[1].all? { |element| element.is_a?(String || Symbol) }
+          in [*, [*]] if arg[1].all? { |element| [String, Symbol].include? element.class }
             next
           else
             raise 'Invalid Arguments pattern for exclude_exportable_attributes'
