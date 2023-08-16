@@ -16,3 +16,7 @@ gem "rubocop", "~> 1.56"
 gem "rubocop-rails", "~> 2.20"
 
 gem "byebug", "~> 11.1"
+
+gem "faker", "~> 3.2"
+
+gem "csv", "~> 3.2"
