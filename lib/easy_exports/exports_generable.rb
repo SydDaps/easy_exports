@@ -6,7 +6,7 @@ module EasyExports
 
     class_methods do
       def generate_exports(fields_to_export = {}, ids = [])
-        validate_exclude_exportable_attributes_argument(fields_to_export, "generate_exports")
+        validate_exclude_exportable_attributes_argument(fields_to_export, 'generate_exports')
 
         selected_exportable_attributes = revert_transformed_names(fields_to_export)
         export_row_template = generate_export_row_template(selected_exportable_attributes)

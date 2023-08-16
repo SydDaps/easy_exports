@@ -39,8 +39,6 @@ module EasyExports
       def validate_exclude_exportable_attributes_argument(argument, method_name = 'exclude_exportable_attributes')
         raise 'Argument for exclude_exportable_attributes has to be a hash' unless argument.is_a? Hash
 
-        byebug
-
         argument.to_a.each do |arg|
           case arg
           in [*, [*]] if arg[1].all? { |element| [String, Symbol].include? element.class }
