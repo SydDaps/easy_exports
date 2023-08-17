@@ -90,9 +90,9 @@ The method returns an `EasyExports::Export` object containing hash data from the
 <div align="center">
   <img width="346" alt="csv_user_phones" src="https://github.com/SydDaps/easy_exports/assets/51008616/41001ac7-6870-4cad-bf20-048d22585045" />
 </div>
-Exported CSV showcases data for user "Sydney" with 3 phones and user "Stan" with 2 phones.
 
-The main CSV header follows the pattern `"#{exportable_attributes_association}_#{exportable_attributes_attribute}"`.
+Exported CSV showcases data for user "Sydney" with 3 phones and user "Stan" with 2 phones. The main CSV header is made up of association name and the attribute name
+
 
 ### Exportable Attributes Aliases
 
@@ -121,7 +121,6 @@ Configure an alternative association name for exportable attributes using the `e
   # }
 ```
 With the exportable_association_aliases configured, the phones association has been renamed to "Mobile phones". This new name will appear in the export header when generating exports with this alias for exportable attributes.
-
 
 ### Excluding Specific Exportable Attributes
 
