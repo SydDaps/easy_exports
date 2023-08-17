@@ -90,7 +90,10 @@ module EasyExports
       end
 
       def export_header(association_name, attribute)
-        "#{associations_aliases_store[underscored_self_name][association_name] || association_name}_#{attribute}"
+        association_alias = associations_aliases_store[underscored_self_name]
+        association_alias = association_alias.blank? ? nil : association_alias[association_name]
+
+        "#{association_alias || association_name}_#{attribute}"
       end
 
       def resolve_attributes(attribute, objects)
@@ -119,6 +122,9 @@ module EasyExports
       end
 
       def reversed_associations_name_aliases
+        associations_aliases = associations_aliases_store[underscored_self_name]
+        return {} if associations_aliases.blank?
+
         associations_aliases_store[underscored_self_name].with_indifferent_access.to_a.map(&:reverse).to_h
       end
 
