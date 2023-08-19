@@ -67,31 +67,44 @@ To generate exports, use the `generate_exports(exportable_attributes, ids)` meth
 The method returns an `EasyExports::Export` object containing hash data from the records and a `csv_string` that can be written to a CSV file.
 
 ```ruby
-  user_exportable_attributes = {"User"=>["id", "first name"], "Phones"=>["id", "number"]}
-  
-  exports_object = User.generate_exports(user_exportable_attributes)
-  # => EasyExports::Export(Object)
-  
-  exports_data = exports_object.data
-  # => [{"user_id"=>1, "user_first_name"=>"sydney","phones_id"=>1, "phones_number"=>"(473) 693-8745"},
-  #     {"user_id"=>nil, "user_first_name"=>nil, "phones_id"=>2, "phones_number"=>"594-299-0722"},
-  #     {"user_id"=>nil, "user_first_name"=>nil, "phones_id"=>3, "phones_number"=>"1-609-662-2028"},
-  #     {"user_id"=>2, "user_first_name"=>"Stan", "phones_id"=>4, "phones_number"=>"951-671-9548"},
-  #     {"user_id"=>nil, "user_first_name"=>nil, "phones_id"=>5, "phones_number"=>"1-698-432-7489"}]
-  
-  exports_csv_string = exports_object.csv_string
-  # => "user_id,user_first_name,phones_id,phones_number\n1,sydney,1,(473) 693-8745\n,,2,594-299-0722\n,,3,1-609-662-2028\n2,Stan,4,951-671-9548\n,,5,1-698-432-7489\n"
+user_exportable_attributes = {"User"=>["id", "first name"], "Phones"=>["id", "number"]}
 
-  #writting csv_string to file to visualize the export generated
-  File.open(file_path, 'w') do |file|
-    file.write(exports_csv_string)
-  end
+exports_object = User.generate_exports(user_exportable_attributes)
+# => EasyExports::Export(Object)
+
+exports_data = exports_object.data
+# =>
+# [
+#   {"user_id"=>1, "user_first_name"=>"Sydney", "phones_id"=>1, "phones_number"=>"(473) 693-8745", "emails_id"=>5, "emails_address"=>"blake_armstrong@bahringer.test"},
+#   {"user_id"=>1, "user_first_name"=>"Sydney", "phones_id"=>2, "phones_number"=>"594-299-0722", "emails_id"=>6, "emails_address"=>"dulce@mertz.example"},
+#   {"user_id"=>1, "user_first_name"=>"Sydney", "phones_id"=>3, "phones_number"=>"1-609-662-2028", "emails_id"=>nil, "emails_address"=>nil},
+#   {"user_id"=>2, "user_first_name"=>"Stan", "phones_id"=>4, "phones_number"=>"951-671-9548", "emails_id"=>7, "emails_address"=>"dominick@durgan.example"},
+#   {"user_id"=>2, "user_first_name"=>"Stan", "phones_id"=>5, "phones_number"=>"1-698-432-7489", "emails_id"=>nil, "emails_address"=>nil}
+# ]
+
+exports_csv_string = exports_object.csv_string
+# =>
+# "user_id,user_first_name,phones_id,phones_number,emails_id,emails_address\n
+# 1,Sydney,1,(473) 693-8745,5,blake_armstrong@bahringer.test\n
+# 1,Sydney,2,594-299-0722,6,dulce@mertz.example\n
+# 1,Sydney,3,1-609-662-2028,,\n
+# 2,Stan,4,951-671-9548,7,dominick@durgan.example\n
+# 2,Stan,5,1-698-432-7489,,\n"
+
+# Writing csv_string to a file to visualize the generated export
+File.open(file_path, 'w') do |file|
+  file.write(exports_csv_string)
+end
 ```
 <div align="center">
-  <img width="346" alt="csv_user_phones" src="https://github.com/SydDaps/easy_exports/assets/51008616/41001ac7-6870-4cad-bf20-048d22585045" />
+  <img width="600" alt="csv_with_emails" src="https://github.com/SydDaps/easy_exports/assets/51008616/8b9df43c-419d-4ca0-8cb1-6217025b8050">
 </div>
 
-Exported CSV showcases data for user "Sydney" with 3 phones and user "Stan" with 2 phones. The main CSV header is made up of association name and the attribute name
+Exported CSV showcases data for:
+
+- User "Sydney" with 3 phones and 2 emails
+- User "Stan" with 2 phones and 1 email.
+- The main CSV header includes association names and attribute names.
 
 
 ### Exportable Attributes Aliases
