@@ -2,7 +2,8 @@ PATH
   remote: .
   specs:
     easy_exports (0.1.0)
-      rails (>= 7.0.5)
+      csv (>= 3.0)
+      rails (>= 6.0)
 
 GEM
   remote: https://rubygems.org/

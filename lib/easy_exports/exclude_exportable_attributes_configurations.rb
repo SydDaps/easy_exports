@@ -51,5 +51,3 @@ module EasyExports
     end
   end
 end
-
-ActiveRecord::Base.include EasyExports::ExcludeExportableAttributesConfigurations

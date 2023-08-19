@@ -42,4 +42,4 @@ module EasyExports
   end
 end
 
-ActiveRecord::Base.include EasyExports::ExportableAssociationAliasesConfigurations
+# ActiveRecord::Base.include EasyExports::ExportableAssociationAliasesConfigurations

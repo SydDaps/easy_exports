@@ -4,11 +4,18 @@ module EasyExports
   module ExportableAttributes
     extend ActiveSupport::Concern
 
-    class_methods do
+    included do
       cattr_accessor :excluded_exportable_attributes_store, default: {}, instance_writer: false
       cattr_accessor :associations_aliases_store, default: {}, instance_writer: false
       cattr_accessor :associations_to_exclude_store, default: {}, instance_writer: false
 
+      include EasyExports::ExportableAssociationAliasesConfigurations
+      include EasyExports::ExportableAttributeResolvers
+      include EasyExports::ExcludeExportableAttributesConfigurations
+      include EasyExports::ExportsGenerable
+    end
+
+    class_methods do
       def exportable_attributes
         self_with_associations.each_with_object({}) do |association, attributes|
           association_name = association.name.to_s.downcase
