@@ -67,7 +67,7 @@ To generate exports, use the `generate_exports(exportable_attributes, ids)` meth
 The method returns an `EasyExports::Export` object containing hash data from the records and a `csv_string` that can be written to a CSV file.
 
 ```ruby
-user_exportable_attributes = {"User"=>["id", "first name"], "Phones"=>["id", "number"]}
+user_exportable_attributes = {"User"=>["id", "first name"], "Phones"=>["id", "number"], "Emails"=>["id", "address"]}
 
 exports_object = User.generate_exports(user_exportable_attributes)
 # => EasyExports::Export(Object)
