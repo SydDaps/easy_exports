@@ -48,7 +48,7 @@ module EasyExports
       end
 
       def humanize_attribute_names(attributes)
-        attributes.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }
+        attributes.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }.sort
       end
     end
   end

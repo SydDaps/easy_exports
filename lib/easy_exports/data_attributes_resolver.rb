@@ -30,15 +30,11 @@ module EasyExports
       end
 
       def parse_attribute_value(value)
-        value_class = value.class
+        return DateTime.parse(value.to_s).strftime('%Y-%m-%d %H:%M:%S') if value.is_a?(ActiveSupport::TimeWithZone)
 
-        if value_class.eql?(ActiveSupport::TimeWithZone)
-          DateTime.parse(value.to_s).strftime('%Y-%m-%d %H:%M:%S')
-        elsif !value_class.eql?(String)
-          value
-        else
-          value.start_with?('0') ? "'#{value}" : value
-        end
+        return "'#{value}" if value.is_a?(String) && value&.start_with?('0')
+
+        value
       end
 
       def objects_for_attribute(association_name, record)

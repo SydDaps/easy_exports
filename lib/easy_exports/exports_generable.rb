@@ -42,7 +42,7 @@ module EasyExports
 
       def rearrange_selected_attributes(selected_attributes)
         selected_attributes = selected_attributes.to_a
-        self_alias_name = associations_aliases_store[underscored_self_name]&.fetch(underscored_self_name)
+        self_alias_name = associations_aliases_store[underscored_self_name]&.fetch(underscored_self_name, nil)
         self_name = self_alias_name || underscored_self_name
 
         self_exportable_attributes = selected_attributes.find do |selected_attribute|
