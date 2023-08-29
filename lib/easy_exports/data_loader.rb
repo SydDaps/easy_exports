@@ -22,6 +22,8 @@ module EasyExports
                              end&.class_name
                            end
 
+        raise ArgumentError "Invalid Association: #{association_name}" unless association
+
         association_name.constantize.attribute_names
       end
 
