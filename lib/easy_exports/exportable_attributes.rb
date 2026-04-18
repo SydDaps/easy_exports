@@ -8,16 +8,21 @@ module EasyExports
       cattr_accessor :excluded_exportable_attributes_store, default: {}, instance_writer: false
       cattr_accessor :associations_aliases_store, default: {}, instance_writer: false
       cattr_accessor :associations_to_exclude_store, default: {}, instance_writer: false
+      cattr_accessor :exportable_attribute_formatters_store, default: {}, instance_writer: false
+      cattr_accessor :disabled_type_formatters_store, default: {}, instance_writer: false
+      cattr_accessor :overridden_type_formatters_store, default: {}, instance_writer: false
+      cattr_accessor :include_sensitive_exportable_attributes, default: false, instance_writer: false
 
       include EasyExports::ExportableAssociationAliasesConfigurations
       include EasyExports::ExportableAttributeResolvers
       include EasyExports::ExcludeExportableAttributesConfigurations
+      include EasyExports::ExportableAttributeFormattersConfigurations
       include EasyExports::ExportsGenerable
     end
 
     class_methods do
       def exportable_attributes
-        self_with_associations.each_with_object({}) do |association, attributes|
+        @exportable_attributes ||= self_with_associations.each_with_object({}) do |association, attributes|
           association_name = association.name.to_s.downcase
           next if associations_to_exclude_store[underscored_self_name]&.include? association_name
 
@@ -26,6 +31,10 @@ module EasyExports
           association_name = resolve_associations_names_aliases(association_name)
           attributes[humanize_model_name(association_name)] = humanize_attribute_names(association_attributes)
         end
+      end
+
+      def reset_exportable_attributes_cache!
+        @exportable_attributes = nil
       end
 
       private

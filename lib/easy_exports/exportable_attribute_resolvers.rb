@@ -20,7 +20,15 @@ module EasyExports
 
       def resolve_attributes_for_association(association)
         association_attributes = association.class_name.constantize.attribute_names
-        association_attributes - resolve_excluded_exportable_attributes(association.name.to_s.downcase)
+        association_attributes -
+          resolve_excluded_exportable_attributes(association.name.to_s.downcase) -
+          resolve_sensitive_attributes_to_exclude
+      end
+
+      def resolve_sensitive_attributes_to_exclude
+        return [] if include_sensitive_exportable_attributes
+
+        EasyExports.sensitive_attributes.map(&:to_s)
       end
 
       def resolve_associations_names_aliases(association_name)

@@ -26,15 +26,42 @@ module EasyExports
       end
 
       def resolve_attributes(attribute, objects)
-        objects.empty? ? [nil] : objects.map { |object| parse_attribute_value(object.send(attribute)) }.flatten
+        return [nil] if objects.empty?
+
+        objects.map do |object|
+          raw_value = object.send(attribute)
+          format_value_for_export(object.class, attribute, raw_value)
+        end.flatten
       end
 
-      def parse_attribute_value(value)
-        return DateTime.parse(value.to_s).strftime('%Y-%m-%d %H:%M:%S') if value.is_a?(ActiveSupport::TimeWithZone)
+      def format_value_for_export(klass, attribute, value)
+        custom = exportable_attribute_formatter_for(klass, attribute)
+        return custom.call(value) if custom
+        return value if value.nil?
 
-        return "'#{value}" if value.is_a?(String) && value&.start_with?('0')
+        type_formatter = type_formatter_for(klass, value)
+        type_formatter ? type_formatter.call(value) : value
+      end
 
-        value
+      def exportable_attribute_formatter_for(klass, attribute)
+        store = exportable_attribute_formatters_store[klass.name.underscore.downcase]
+        store && store[attribute.to_s]
+      end
+
+      def type_formatter_for(klass, value)
+        klass_key = klass.name.underscore.downcase
+        disabled = disabled_type_formatters_store[klass_key] || []
+        overrides = overridden_type_formatters_store[klass_key] || {}
+
+        EasyExports::TYPE_MATCHERS.each do |type, matcher|
+          next if disabled.include?(type)
+          next unless matcher.call(value)
+
+          formatter = overrides[type] || EasyExports.type_formatters[type]
+          return formatter if formatter
+        end
+
+        nil
       end
 
       def objects_for_attribute(association_name, record)

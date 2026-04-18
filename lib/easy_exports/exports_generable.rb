@@ -10,7 +10,7 @@ module EasyExports
     end
 
     class_methods do
-      def generate_exports(fields_to_export = {}, ids = [])
+      def generate_exports(fields_to_export = {}, ids = [], order: nil, batch_size: nil)
         validate_exclude_exportable_attributes_argument(fields_to_export, 'generate_exports')
 
         selected_exportable_attributes = revert_transformed_names(fields_to_export)
@@ -19,7 +19,7 @@ module EasyExports
         export_row_template = generate_export_row_template(selected_exportable_attributes)
 
         selected_attributes = revert_exportable_attributes_aliases(selected_exportable_attributes)
-        records = fetch_records(ids, selected_attributes)
+        records = fetch_records(ids, selected_attributes, order, batch_size || EasyExports.batch_size)
 
         exported_data = records.each_with_object([]) do |record, hash_to_export|
           hash_to_export << value_from_selected_attributes(selected_attributes, record, export_row_template.dup)
@@ -31,8 +31,12 @@ module EasyExports
       end
 
       def write_exported_data_to_csv(exported_data, export_row_template)
+        header_formatter = EasyExports.csv_header_formatter
+        keys = export_row_template.keys
+        headers = header_formatter ? keys.map { |k| header_formatter.call(k) } : keys
+
         CSV.generate(headers: true) do |csv|
-          csv << export_row_template.keys
+          csv << headers
 
           exported_data.each do |data|
             csv << data.values
@@ -60,7 +64,7 @@ module EasyExports
       def generate_export_row_template(selected_attributes)
         selected_attributes.each_with_object({}) do |(association_name, attributes), export_row|
           attributes.each do |attribute|
-            export_row.merge!("#{association_name}_#{attribute}" => nil)
+            export_row.merge!(export_header(association_name, attribute) => nil)
           end
         end
       end

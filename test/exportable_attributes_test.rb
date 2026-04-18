@@ -5,8 +5,8 @@ require 'test_helper'
 class ExportableAttributesTest < ActiveSupport::TestCase
   test 'it should generate exportable attributes for model and all of its attributes' do
     assert_equal(
-      User.exportable_attributes['User'],
-      User.attribute_names.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }
+      User.exportable_attributes['User aliases'],
+      User.attribute_names.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }.sort
     )
   end
 
@@ -16,12 +16,12 @@ class ExportableAttributesTest < ActiveSupport::TestCase
 
     assert_equal(
       User.exportable_attributes['Phones'],
-      Phone.attribute_names.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }
+      Phone.attribute_names.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }.sort
     )
 
     assert_equal(
       User.exportable_attributes['Emails'],
-      Email.attribute_names.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }
+      Email.attribute_names.map { |attribute| attribute.humanize(keep_id_suffix: true).downcase }.sort
     )
   end
 
@@ -42,10 +42,10 @@ class ExportableAttributesTest < ActiveSupport::TestCase
   end
 
   test 'it should rename exportable_attributes associations to passed association aliases' do
-    # method call in User class exportable_association_aliases emails: :user_emails_alias
+    # method call in Address class: exportable_association_aliases user: :assigned_user
     address_exportable_attributes = Address.exportable_attributes
 
-    assert address_exportable_attributes['User alias'].present?
+    assert address_exportable_attributes['Assigned user'].present?
   end
 
   test 'it raise argument error for invalid association passed for association_aliases' do

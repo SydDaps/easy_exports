@@ -58,11 +58,12 @@ Retrieve exportable attributes using the `exportable_attributes` method. This me
 
 ### Generating Exports from Exportable Attributes
 
-To generate exports, use the `generate_exports(exportable_attributes, ids)` method.
+To generate exports, use the `generate_exports(exportable_attributes, ids, order:)` method.
 
 - The `exportable_attributes` argument specifies the chosen attributes from the exportable attributes list.
 - The `ids` argument is optional; provide IDs to export data for specific records.
 - Omitting `ids` will trigger exports for all records of the given model.
+- The `order:` keyword argument is optional; see [Ordering Exports](#ordering-exports) for details.
 
 The method returns an `EasyExports::Export` object containing hash data from the records and a `csv_string` that can be written to a CSV file.
 
@@ -106,6 +107,142 @@ Exported CSV showcases data for:
 - User "Stan" with 2 phones and 1 email.
 - The main CSV header includes association names and attribute names.
 
+
+### Ordering Exports
+
+Control the order of rows in the generated export using the `order:` keyword argument on `generate_exports`.
+
+- `order:` accepts any value ActiveRecord's `order` accepts — a hash, string, symbol, or array.
+- When `order:` is omitted and the model has a `created_at` column, exports default to newest first (`created_at DESC`).
+- When `order:` is omitted and no `created_at` column exists, no ordering is applied.
+
+```ruby
+  # Example: explicit ordering
+
+  # Order by first_name ascending
+  User.generate_exports(user_exportable_attributes, [], order: { first_name: :asc })
+
+  # Order by a raw SQL fragment
+  User.generate_exports(user_exportable_attributes, [], order: 'last_name DESC, id ASC')
+
+  # Default ordering (newest first when created_at exists)
+  User.generate_exports(user_exportable_attributes)
+```
+
+For performance, records are fetched in batches of 1,000 internally while preserving the requested order across the full result set. The batch size is configurable — see [Configuration](#configuration).
+
+### Configuration
+
+Configure gem-wide defaults using `EasyExports.configure`.
+
+```ruby
+  # config/initializers/easy_exports.rb
+  EasyExports.configure do |c|
+    c.batch_size = 500                                          # default: 1000
+    c.sensitive_attributes += %w[internal_note ssn]             # extends the default list
+    c.type_formatters[:datetime] = ->(v) { v.strftime('%d/%m/%Y') }
+    c.csv_header_formatter = ->(key) { key.humanize.upcase }    # or set to nil to disable
+  end
+```
+
+- `batch_size` — number of records fetched per database round trip during export. Override per call with `generate_exports(..., batch_size: 2_000)`.
+- `sensitive_attributes` — attributes auto-excluded from every export. See [Sensitive Attributes](#sensitive-attributes) for the default list and per-model opt-out.
+- `type_formatters` — per-type value formatters applied before a raw value is written to CSV. See [Type Formatters](#type-formatters).
+- `csv_header_formatter` — callable applied to every header in the CSV row. Defaults to `humanize.titleize` (e.g. `registration_email` → `Registration Email`). Set to `nil` to keep raw snake_case headers.
+
+### Sensitive Attributes
+
+EasyExports automatically excludes commonly sensitive attributes from all exports. The default list is:
+
+```ruby
+  %w[
+    password_digest
+    encrypted_password
+    remember_token
+    reset_password_token
+    confirmation_token
+    session_token
+    api_key
+    secret_token
+  ]
+```
+
+To include these on a specific model (e.g. for admin-only exports), opt in at the class level:
+
+```ruby
+  class AdminLogin < ApplicationRecord
+    self.include_sensitive_exportable_attributes = true
+  end
+```
+
+Extend or replace the default list through [Configuration](#configuration).
+
+### Type Formatters
+
+EasyExports applies type-based formatters automatically, so you don't have to write a lambda for every boolean or timestamp column.
+
+| Type | Matches | Shipped formatter | Example output |
+|------|---------|-------------------|----------------|
+| `boolean` | `true` / `false` | `->(v) { v ? 'Yes' : 'No' }` | `Yes`, `No` |
+| `datetime` | `Date`, `Time`, `DateTime`, `ActiveSupport::TimeWithZone` | `->(v) { v.strftime('%A, %B %-d, %Y %H:%M') }` | `Sunday, January 5, 2025 09:17` |
+| `leading_zero_string` | `String` starting with `0` | `->(v) { "'#{v}" }` | `'0244867596` (preserves leading zero in spreadsheets) |
+| `string` | `String` not containing `@` | *(none — opt in per model)* | — |
+
+`nil` values always pass through untouched.
+
+**Turn off a type formatter for a specific model:**
+
+```ruby
+  class Transaction < ApplicationRecord
+    disable_exportable_type_formatter :datetime               # one type
+    disable_exportable_type_formatter :boolean, :datetime     # multiple types
+  end
+```
+
+**Replace a type formatter for a specific model** — apply a different format to *all* values of that type on this one model:
+
+```ruby
+  class Registration < ApplicationRecord
+    # Every datetime on Registration renders as "January 5, 2025" — no time portion
+    format_exportable_type :datetime, ->(v) { v.strftime('%B %-d, %Y') }
+
+    # Capitalize the first letter of every plain string (emails are skipped automatically)
+    format_exportable_type :string, ->(v) { v.sub(/^./, &:upcase) }
+
+    # Block form
+    format_exportable_type(:boolean) { |v| v ? '✓' : '✗' }
+  end
+```
+
+**Change or disable a type formatter globally** — see [Configuration](#configuration).
+
+### Custom Value Formatters
+
+For a specific attribute, override the default with your own formatter using `format_exportable_attribute`.
+
+- Declare it on the class that owns the attribute. It applies whenever that attribute is exported, whether from the owner model directly or through an association.
+- Accepts either a callable (lambda/proc) or a block.
+- A custom formatter takes precedence over any default formatter for that attribute.
+
+```ruby
+  class Registration < ApplicationRecord
+    # Override the global datetime default with a shorter format for this attribute
+    format_exportable_attribute :registered_on, ->(v) { v&.strftime('%Y-%m-%d') }
+
+    # Override the global boolean default with custom glyphs
+    format_exportable_attribute :is_archived, ->(v) { v ? '✓' : '' }
+
+    # Block form
+    format_exportable_attribute(:status) { |v| v.to_s.titleize }
+  end
+```
+
+**Precedence** (top wins):
+1. Per-attribute `format_exportable_attribute`
+2. Per-model `disable_default_formatter` (if disabled → raw value)
+3. Per-model `override_default_formatter` (if overridden → override wins)
+4. Global `EasyExports.default_formatters[:type]`
+5. Raw value
 
 ### Exportable Attributes Aliases
 

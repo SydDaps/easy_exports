@@ -7,34 +7,23 @@ module EasyExports
     class_methods do
       private
 
-      def fetch_records(ids, selected_attributes)
+      def fetch_records(ids, selected_attributes, order = nil, batch_size = EasyExports.batch_size)
         validate_association_attributes(selected_attributes, 'to_exported_data')
 
-        records_with_preloaded_associations(ids, selected_attributes)
+        scope = ids.blank? ? all : where(id: ids)
+        ordered_ids = apply_export_order(scope, order).pluck(:id)
+        associations_to_preload = selected_attributes.keys - [underscored_self_name]
+
+        ordered_ids.each_slice(batch_size).flat_map do |id_slice|
+          batch = apply_export_order(where(id: id_slice), order).to_a
+          ActiveRecord::Associations::Preloader.new(records: batch, associations: associations_to_preload).call
+          batch
+        end
       end
 
-      def association_attributes(association_name)
-        association_name = if association_name == underscored_self_name
-                             association_name.classify
-                           else
-                             reflect_on_all_associations.find do |association|
-                               association.name.to_s == association_name
-                             end&.class_name
-                           end
-
-        association_name.constantize.attribute_names
-      end
-
-      def records_with_preloaded_associations(ids, selected_attributes)
-        records = ids.blank? ? all : where(id: ids)
-
-        associations_to_preload = selected_attributes.keys
-        associations_to_preload.delete(underscored_self_name)
-
-        ActiveRecord::Associations::Preloader.new(
-          records: records,
-          associations: associations_to_preload
-        ).call
+      def apply_export_order(records, order)
+        return records.order(order) if order.present?
+        return records.order(created_at: :desc) if column_names.include?('created_at')
 
         records
       end
